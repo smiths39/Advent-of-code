@@ -28,38 +28,57 @@ public class InventoryManagementSystem {
 		return inputData;
 	}
 
-	private static Integer findChecksum(ArrayList<String> inputData) {
-		SetMultimap<Character, Integer> checksums = HashMultimap.create();
+	private static SetMultimap<Character, String> findChecksum(ArrayList<String> inputData, int numEntries) {
+		SetMultimap<Character, String> checksums = HashMultimap.create();
 
 		int totalChecksum = 0;
 		int characterCount = 0;
 
 		for (String boxId : inputData) {
-			for (char alphabet = 'a'; alphabet <= 'z'; alphabet++) {
+			for (char letter = 'a'; letter <= 'z'; letter++) {
 				for (int i = 0; i < boxId.length(); i++) {
-					if (boxId.charAt(i) == alphabet) {
+					if (boxId.charAt(i) == letter) {
 						characterCount += 1;
 					}
 				}
 
-				if (characterCount > 0) {
-					checksums.put(alphabet, characterCount);
+				if (characterCount == numEntries && !checksums.containsEntry(letter, boxId)) {
+					checksums.put(letter, boxId);
+	        		System.out.println(letter + ": " + boxId + " - count: " + characterCount);
 				}
 
 				characterCount = 0;
 			}
 		}
+		return checksums;
+	}
 
-		
-System.out.println(checksums); 
+	private static int calculateTotalChecksum(SetMultimap<Character, String> checksums) {
+		Set<Character> keys = checksums.keySet();
+	    
+	    int count = 0;
 
-		return totalChecksum;
+	    for (char letter : keys) {
+	        Collection<String> values = checksums.get(letter);
+
+	        for (int i = 0; i < values.size(); i++) {
+	        	//System.out.println(letter + ": " + i);
+	        	count++;
+	        }
+	    }
+
+	    return count;
 	}
 
 	public static void main(String [] args) {
 		ArrayList<String> boxIds = readBoxIds();
-		int totalChecksum = findChecksum(boxIds);
+		SetMultimap<Character, String> checksumsTwo = findChecksum(boxIds, 2);
+		SetMultimap<Character, String> checksumsThree = findChecksum(boxIds, 3);
 
-		System.out.println("Total Checksum: " + totalChecksum);
+		int totalChecksumTwo = calculateTotalChecksum(checksumsTwo);
+		int totalChecksumThree = calculateTotalChecksum(checksumsThree);
+
+		System.out.println("Total Checksum: " + totalChecksumTwo + totalChecksumThree);
+
 	}
 }
