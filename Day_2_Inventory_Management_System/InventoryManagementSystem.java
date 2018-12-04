@@ -36,6 +36,8 @@ public class InventoryManagementSystem {
 
 		for (String boxId : inputData) {
 			for (char letter = 'a'; letter <= 'z'; letter++) {
+				characterCount = 0;
+
 				for (int i = 0; i < boxId.length(); i++) {
 					if (boxId.charAt(i) == letter) {
 						characterCount += 1;
@@ -44,41 +46,61 @@ public class InventoryManagementSystem {
 
 				if (characterCount == numEntries && !checksums.containsEntry(letter, boxId)) {
 					checksums.put(letter, boxId);
-	        		System.out.println(letter + ": " + boxId + " - count: " + characterCount);
+	        		break;
 				}
-
-				characterCount = 0;
 			}
 		}
 		return checksums;
 	}
 
-	private static int calculateTotalChecksum(SetMultimap<Character, String> checksums) {
-		Set<Character> keys = checksums.keySet();
-	    
-	    int count = 0;
+	private static String findMatchingBoxIds(ArrayList<String> inputData) {
+		String boxId = "";
+		String nextBoxId = "";
+		int mismatchCount = 0;
+		int mismatchIndex = 0;
 
-	    for (char letter : keys) {
-	        Collection<String> values = checksums.get(letter);
+		for (int i = 0; i < inputData.size(); i++) {
+			boxId = inputData.get(i);
 
-	        for (int i = 0; i < values.size(); i++) {
-	        	//System.out.println(letter + ": " + i);
-	        	count++;
-	        }
-	    }
+			for (int j = i+1; j < inputData.size(); j++) {
+				nextBoxId = inputData.get(j);
 
-	    return count;
+				for (int k = 0; k < boxId.length(); k++) {
+					if (boxId.charAt(k) != nextBoxId.charAt(k)) {
+						mismatchIndex = k;
+						mismatchCount++;
+					}
+				}
+
+				if (mismatchCount == 1) {
+						System.out.println("index: " + mismatchIndex);
+						System.out.println("box name:        " + boxId);
+						System.out.println("next box name:   " + nextBoxId);
+
+					return removeByIndex(boxId, mismatchIndex);
+				}
+
+				mismatchCount = 0;
+				mismatchIndex = 0;
+			}
+		}
+
+		return null;
 	}
+
+	 private static String removeByIndex(String str, int index) {
+        return str.replaceFirst(String.valueOf(str.charAt(index)), "");
+    }
 
 	public static void main(String [] args) {
 		ArrayList<String> boxIds = readBoxIds();
 		SetMultimap<Character, String> checksumsTwo = findChecksum(boxIds, 2);
 		SetMultimap<Character, String> checksumsThree = findChecksum(boxIds, 3);
 
-		int totalChecksumTwo = calculateTotalChecksum(checksumsTwo);
-		int totalChecksumThree = calculateTotalChecksum(checksumsThree);
+		int totalChecksumTwo = checksumsTwo.size();
+		int totalChecksumThree = checksumsThree.size();
 
-		System.out.println("Total Checksum: " + totalChecksumTwo + totalChecksumThree);
-
+		System.out.println("Total Checksum: " + (totalChecksumTwo * totalChecksumThree));
+		System.out.println("Matching Box Id: " + findMatchingBoxIds(boxIds));
 	}
 }
