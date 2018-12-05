@@ -40,33 +40,70 @@ public class NoMatterHowYouSliceIt {
 			topInch.add(Integer.parseInt(substringBetweenCharacters(data, ",", ":")));
 			width.add(Integer.parseInt(substringBetweenCharacters(data, ":", "x")));
 			height.add(Integer.parseInt(substringBetweenCharacters(data, "x", "")));
-				
-
 		}
-
-		System.out.println("claim id: " + claimId.get(0));
-		System.out.println("left id: " + leftInch.get(0));
-		System.out.println("top id: " + topInch.get(0));
-		System.out.println("width: " + width.get(0));
-		System.out.println("height: " + height.get(0));
 	}
 
 	private static String substringBetweenCharacters(String str, String startChar, String endChar) {
-		if (endChar.length() == 0) {
+		if (endChar.isEmpty()) {
 			return str.substring(str.indexOf(startChar) + 1, str.length());
-		} else {
-			return str.substring(str.indexOf(startChar) + 1, str.indexOf(endChar)).trim();
+		} 
+		return str.substring(str.indexOf(startChar) + 1, str.indexOf(endChar)).trim();
+	}
+
+	private static Integer getOverlappingClaims() {
+		ArrayList<String> coordinates = new ArrayList<>();
+		ArrayList<String> alreadyFound = new ArrayList<>();
+
+		int totalWidth = 1000;
+		int totalHeight = 1000;
+
+		int leftInchIndex = 0;
+		int topInchIndex = 0; 
+		int widthIndex = 0;
+		int heightIndex = 0;
+	
+		int overlapCounter = 0;
+		String rowCol = "";
+
+		boolean claimOverlapped = false;
+
+		for (int row = 0; row < totalHeight; row++) {
+			for (int col = 0; col < totalWidth; col++) {
+				for (int i = 0; i < claimId.size(); i++) {
+					leftInchIndex = leftInch.get(i);
+					topInchIndex = topInch.get(i); 
+					widthIndex = width.get(i);
+					heightIndex = height.get(i);
+
+					if (topInchIndex <= row && row < (topInchIndex + heightIndex)) {
+						if (leftInchIndex <= col && col < (leftInchIndex + widthIndex)) {
+							rowCol = Integer.toString(row) + " " + Integer.toString(col);
+							if (coordinates.contains(rowCol) && !alreadyFound.contains(rowCol)) {
+								overlapCounter++;
+								alreadyFound.add(rowCol);
+								claimOverlapped = true;
+							}  else if (!coordinates.contains(rowCol)) {
+								coordinates.add(rowCol);
+							}
+						}
+					} 
+				}
+			}
 		}
+
+		return overlapCounter;
 	}
 
 	public static void main(String [] args) {
 		ArrayList<String> fabricData = readFabricClaims();
-
-		String str = "#3 @ 5,5: 2x27";
-			str = str.substring(str.indexOf("x") + 1, str.length());
-			System.out.println(str);
-
 		splitFabricData(fabricData);
 
+		int overlappingClaims = getOverlappingClaims();
+		System.out.println("Overlapping claims: " + overlappingClaims);
 	}
 }
+
+/**
+answer 1 = 111266
+answer 2 = 123
+*/
