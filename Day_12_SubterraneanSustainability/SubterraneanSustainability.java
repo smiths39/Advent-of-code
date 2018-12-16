@@ -1,60 +1,96 @@
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
 
 public class SubterraneanSustainability {
-	private static ArrayList<String> plantRules = new ArrayList<>();
-	private static String initialState = "";
+	private static HashMap<String, Character> plantRules = new HashMap<>();
+	private static char[] plantInput;
+	private static String initial;
+	private static long part1 = 0, part2 = 0;
 
-	private final static int GENERATION_YEARS = 250;
+	private final static int GENERATION_YEARS = 20;
 
 	private static void readPlantData() {
 		try {
-            Scanner reader = new Scanner(new File("plant_input.txt"));
-            
-            while (reader.hasNext()) {
-                String line = reader.nextLine();
-                
-                if (line.toUpperCase().contains("INITIAL")) {
-                	initialState = line.substring(line.indexOf(':') + 1, line.length());
-                } else {
-                	plantRules.add(line);
-                }
-            }
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
+	        List<String> lines = Files.readAllLines(Paths.get("plant_input.txt"));
+
+	        for (String line : lines) {
+	            if (line.isEmpty()) {
+	                continue;
+	            }
+
+	           	String [] input = line.split(" ");
+
+	           	if (input[0].toUpperCase().equals("INITIAL")) {
+	           		initial = input[2];
+	            } else {
+	            	plantRules.put(input[0], input[2].charAt(0));
+	            }
+	        }
+	    } catch (IOException e) {
+	    	e.printStackTrace();
+	    }
 	}
 
-	private static int findGenerationPlants() {
-		String currentState = initialState;
-		int totalPlants = 0;
+	private static long countPlants(long num) {
+		long count = 0;
+		
+		for (int i = 0; i < plantInput.length; i++) {
+			if (plantInput[i] == '#') {
+				int offset = i - 250;
+				long addFiftyBillion = offset + (50000000000L - (num-1));
+				
+				if (num == 20) {
+					count += offset;
+				} else {
+					count += addFiftyBillion;
+				}
+			}			
+		}
+		return count;
+	}
 
-		for (int gen = 0; gen <= GENERATION_YEARS; gen++) {
-			for (int i = 0; i < currentState.length(); i++) {
-				if (currentState.charAt(i) == '#') {
-					totalPlants++;
+	private static void findGenerationPlants() {
+		String negative = "", positive = "";
+
+		for (int i = 0; i < 250; i++) {
+			negative += ".";
+			positive += ".";
+		}
+
+		String merged = negative + initial + positive;
+		plantInput = merged.toCharArray();
+
+		long k;
+
+		for (k = 1; k <= 150; k++) {
+			char [] tempArr = plantInput.clone();
+
+			for (int i = 2; i < tempArr.length - 2; i++) {
+				String str = new String(tempArr, i-2, 5);
+				Character rule = plantRules.get(str);
+
+				if (rule != null) {
+					plantInput[i] = rule;
+				} else {
+					plantInput[i] = '.';
 				}
 			}
 
-			for (int ruleIndex = 0; ruleIndex < plantRules.size(); ruleIndex++) {
-				for (int lineIndex = 5; lineIndex <= currentState.length(); lineIndex++) {
-					String rulePrefix = currentState.substring(lineIndex-5, lineIndex);
-
-					if (plantRules.contains(rulePrefix + " => #")) {
-						currentState = currentState.substring(0, 2) + "#" + currentState.substring(3, 5);
-					} else if (plantRules.contains(rulePrefix + " => .")) {
-						currentState = currentState.substring(0, 2) + "." + currentState.substring(3, 5);
-					}
-				}
+			if (k == 20) {
+				part1 = countPlants(k);
 			}
 		}
 
-		return totalPlants;
+		part2 = countPlants(k);
 	}
 
 	public static void main(String [] args) {
 		readPlantData();
-		System.out.println("Total Plants: " + findGenerationPlants());
+		findGenerationPlants();
+
+		System.out.println("Part 1: " + part1);
+		System.out.println("Part 2: " + part2);
 	}
 }
 
